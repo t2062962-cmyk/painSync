@@ -1,389 +1,237 @@
 /**
  * PainSync — script.js
- * ES6 Module · Three.js + GLTFLoader + Particle Background
+ * ES6 Module · Three.js + GLTFLoader 
+ * Versión Profesional Optimizada
  */
 
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
-
-// ── GLTFLoader (CDN compatible with r128) ──────────────────────────────────
-// We inline a minimal GLTFLoader import path for r128
-const GLTF_LOADER_URL = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
-
-let GLTFLoader;
-try {
-  const mod = await import(GLTF_LOADER_URL);
-  GLTFLoader = mod.GLTFLoader;
-} catch (e) {
-  console.warn('GLTFLoader not available:', e);
-}
-
+import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
 
 // ════════════════════════════════════════════════════════════════════════════
-// 1. PENTAGON PARTICLE BACKGROUND
+// 1. PENTAGON PARTICLE BACKGROUND (FONDO GENERATIVO)
 // ════════════════════════════════════════════════════════════════════════════
 
 (function initParticles() {
-  const canvas = document.getElementById('bg-canvas');
-  const ctx    = canvas.getContext('2d');
+    const canvas = document.getElementById('bg-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W, H, mouse = { x: -9999, y: -9999 };
 
-  let W, H, mouse = { x: -9999, y: -9999 };
-
-  function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-  window.addEventListener('resize', resize);
-  resize();
-
-  window.addEventListener('mousemove', e => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-  });
-
-  // Pentagon path helper
-  function drawPentagon(ctx, cx, cy, r, rotation) {
-    ctx.beginPath();
-    for (let i = 0; i < 5; i++) {
-      const angle = rotation + (i * 2 * Math.PI) / 5 - Math.PI / 2;
-      const x = cx + r * Math.cos(angle);
-      const y = cy + r * Math.sin(angle);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+    function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
     }
-    ctx.closePath();
-  }
+    window.addEventListener('resize', resize);
+    resize();
 
-  // Generate particles
-  const N = 60;
-  const particles = Array.from({ length: N }, () => ({
-    x:        Math.random() * window.innerWidth,
-    y:        Math.random() * window.innerHeight,
-    r:        4 + Math.random() * 14,
-    vx:       (Math.random() - 0.5) * 0.3,
-    vy:       (Math.random() - 0.5) * 0.3,
-    rot:      Math.random() * Math.PI * 2,
-    rotSpeed: (Math.random() - 0.5) * 0.004,
-    baseAlpha:0.04 + Math.random() * 0.08,
-    alpha:    0,
-  }));
+    window.addEventListener('mousemove', e => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    });
 
-  function animate() {
-    ctx.clearRect(0, 0, W, H);
-
-    for (const p of particles) {
-      // Move
-      p.x   += p.vx;
-      p.y   += p.vy;
-      p.rot += p.rotSpeed;
-
-      // Wrap
-      if (p.x < -40) p.x = W + 40;
-      if (p.x > W + 40) p.x = -40;
-      if (p.y < -40) p.y = H + 40;
-      if (p.y > H + 40) p.y = -40;
-
-      // Proximity to mouse
-      const dx   = p.x - mouse.x;
-      const dy   = p.y - mouse.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const near = Math.max(0, 1 - dist / 160);
-      const targetAlpha = p.baseAlpha + near * 0.55;
-      p.alpha += (targetAlpha - p.alpha) * 0.1;
-
-      // Draw
-      const glowR = near > 0.05 ? p.r * 2.5 : 0;
-
-      if (glowR > 0) {
-        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR + p.r);
-        grd.addColorStop(0, `rgba(56,189,248,${near * 0.18})`);
-        grd.addColorStop(1, 'rgba(56,189,248,0)');
-        ctx.fillStyle = grd;
+    function drawPentagon(ctx, cx, cy, r, rotation) {
         ctx.beginPath();
-        ctx.arc(p.x, p.y, glowR + p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.save();
-      drawPentagon(ctx, p.x, p.y, p.r, p.rot);
-      ctx.strokeStyle = `rgba(56,189,248,${p.alpha})`;
-      ctx.lineWidth   = 1;
-      ctx.stroke();
-
-      if (near > 0.1) {
-        ctx.fillStyle = `rgba(56,189,248,${near * 0.06})`;
-        ctx.fill();
-      }
-      ctx.restore();
-    }
-
-    // Draw faint connection lines between nearby particles
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const a  = particles[i];
-        const b  = particles[j];
-        const dx = a.x - b.x;
-        const dy = a.y - b.y;
-        const d  = Math.sqrt(dx * dx + dy * dy);
-        if (d < 120) {
-          const alpha = (1 - d / 120) * 0.04;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.strokeStyle = `rgba(56,189,248,${alpha})`;
-          ctx.lineWidth   = 0.5;
-          ctx.stroke();
+        for (let i = 0; i < 5; i++) {
+            const angle = rotation + (i * 2 * Math.PI) / 5 - Math.PI / 2;
+            const x = cx + r * Math.cos(angle);
+            const y = cy + r * Math.sin(angle);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
         }
-      }
+        ctx.closePath();
     }
 
-    requestAnimationFrame(animate);
-  }
+    const particles = Array.from({ length: 60 }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        r: 4 + Math.random() * 14,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.004,
+        baseAlpha: 0.04 + Math.random() * 0.08,
+        alpha: 0,
+    }));
 
-  animate();
+    function animate() {
+        ctx.clearRect(0, 0, W, H);
+        for (const p of particles) {
+            p.x += p.vx; p.y += p.vy; p.rot += p.rotSpeed;
+            if (p.x < -40) p.x = W + 40; if (p.x > W + 40) p.x = -40;
+            if (p.y < -40) p.y = H + 40; if (p.y > H + 40) p.y = -40;
+
+            const dist = Math.sqrt((p.x - mouse.x)**2 + (p.y - mouse.y)**2);
+            const near = Math.max(0, 1 - dist / 160);
+            p.alpha += (p.baseAlpha + near * 0.55 - p.alpha) * 0.1;
+
+            ctx.save();
+            drawPentagon(ctx, p.x, p.y, p.r, p.rot);
+            ctx.strokeStyle = `rgba(56,189,248,${p.alpha})`;
+            ctx.stroke();
+            if (near > 0.1) {
+                ctx.fillStyle = `rgba(56,189,248,${near * 0.06})`;
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+        requestAnimationFrame(animate);
+    }
+    animate();
 })();
 
-
 // ════════════════════════════════════════════════════════════════════════════
-// 2. THREE.JS — 3D BODY MODEL
+// 2. THREE.JS — MAIN BODY MODEL (humanbody.glb)
 // ════════════════════════════════════════════════════════════════════════════
 
-(function initThree() {
-  const container = document.getElementById('three-container');
-  const canvas    = document.getElementById('three-canvas');
+(function initMainModel() {
+    const container = document.getElementById('three-container');
+    const canvas = document.getElementById('three-canvas');
+    if (!container || !canvas) return;
 
-  const W = () => container.clientWidth;
-  const H = () => container.clientHeight;
+    const scene = new THREE.Scene();
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.outputEncoding = THREE.sRGBEncoding;
 
-  // Scene
-  const scene    = new THREE.Scene();
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(W(), H());
-  renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.toneMapping    = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(0, 4, 15);
 
-  // Camera
-  const camera = new THREE.PerspectiveCamera(42, W() / H(), 0.1, 100);
-  camera.position.set(0, 0.5, 3.8);
+    const ambientLight = new THREE.AmbientLight(0x38bdf8, 0.5);
+    scene.add(ambientLight);
 
-  // Lighting
-  const ambient = new THREE.AmbientLight(0x38bdf8, 0.6);
-  scene.add(ambient);
+    const pointLight = new THREE.PointLight(0x38bdf8, 2);
+    pointLight.position.set(5, 5, 5);
+    scene.add(pointLight);
 
-  const keyLight = new THREE.PointLight(0x38bdf8, 3.5, 20);
-  keyLight.position.set(2, 3, 4);
-  scene.add(keyLight);
-
-  const fillLight = new THREE.PointLight(0x0ea5e9, 1.5, 15);
-  fillLight.position.set(-2, 1, 2);
-  scene.add(fillLight);
-
-  const rimLight = new THREE.PointLight(0xbae6fd, 1.2, 12);
-  rimLight.position.set(0, -2, -3);
-  scene.add(rimLight);
-
-  // Fog for depth
-  scene.fog = new THREE.FogExp2(0x030712, 0.08);
-
-  // Fallback geometry while model loads (or if no GLB provided)
-  let modelGroup = new THREE.Group();
-  scene.add(modelGroup);
-
-  function buildFallback() {
-    const mat = new THREE.MeshStandardMaterial({
-      color:       0x0a2540,
-      emissive:    0x38bdf8,
-      emissiveIntensity: 0.25,
-      roughness:   0.3,
-      metalness:   0.7,
-      wireframe:   false,
-    });
-
-    // Stylized body stand-in
-    const parts = [
-      // torso
-      { geo: new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.22, 0.55, 6, 12) : new THREE.CylinderGeometry(0.22, 0.19, 0.55, 12), pos: [0, 0, 0] },
-      // head
-      { geo: new THREE.SphereGeometry(0.17, 12, 12), pos: [0, 0.52, 0] },
-      // upper arms
-      { geo: new THREE.CylinderGeometry(0.06, 0.055, 0.38, 8), pos: [0.32, 0.1, 0], rot: [0, 0, Math.PI / 5] },
-      { geo: new THREE.CylinderGeometry(0.06, 0.055, 0.38, 8), pos: [-0.32, 0.1, 0], rot: [0, 0, -Math.PI / 5] },
-      // lower arms
-      { geo: new THREE.CylinderGeometry(0.05, 0.045, 0.35, 8), pos: [0.44, -0.17, 0], rot: [0, 0, Math.PI / 3.5] },
-      { geo: new THREE.CylinderGeometry(0.05, 0.045, 0.35, 8), pos: [-0.44, -0.17, 0], rot: [0, 0, -Math.PI / 3.5] },
-      // upper legs
-      { geo: new THREE.CylinderGeometry(0.09, 0.08, 0.44, 8), pos: [0.13, -0.55, 0] },
-      { geo: new THREE.CylinderGeometry(0.09, 0.08, 0.44, 8), pos: [-0.13, -0.55, 0] },
-      // lower legs
-      { geo: new THREE.CylinderGeometry(0.07, 0.055, 0.38, 8), pos: [0.13, -0.95, 0] },
-      { geo: new THREE.CylinderGeometry(0.07, 0.055, 0.38, 8), pos: [-0.13, -0.95, 0] },
-    ];
-
-    for (const { geo, pos, rot } of parts) {
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(...pos);
-      if (rot) mesh.rotation.set(...rot);
-      modelGroup.add(mesh);
-    }
-
-    // Wireframe overlay for tech feel
-    const wireMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true, transparent: true, opacity: 0.08 });
-    for (const { geo, pos, rot } of parts) {
-      const wire = new THREE.Mesh(geo, wireMat);
-      wire.position.set(...pos);
-      if (rot) wire.rotation.set(...rot);
-      modelGroup.add(wire);
-    }
-  }
-
-  // Try loading GLB
-  if (GLTFLoader) {
+    let mainModel;
     const loader = new GLTFLoader();
-    loader.load(
-      'humanbody.glb',
-      (gltf) => {
-        scene.remove(modelGroup);
-        modelGroup = gltf.scene;
 
-        // Apply cyan material tint to all meshes
-        modelGroup.traverse(child => {
-          if (child.isMesh) {
-            child.material = new THREE.MeshStandardMaterial({
-              color:    0x0d2137,
-              emissive: 0x38bdf8,
-              emissiveIntensity: 0.18,
-              roughness: 0.4,
-              metalness: 0.6,
-            });
-          }
+    loader.load('humanbody.glb', (gltf) => {
+        mainModel = gltf.scene;
+        mainModel.traverse(child => {
+            if (child.isMesh) {
+                child.material = new THREE.MeshStandardMaterial({
+                    color: 0x0d2137,
+                
+                });
+            }
         });
-
-        // Auto-scale to fit
-        const box    = new THREE.Box3().setFromObject(modelGroup);
-        const size   = box.getSize(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const scale  = 2.2 / maxDim;
-        modelGroup.scale.setScalar(scale);
-
-        // Center
+        
+        // Ajuste de escala y posición
+        const box = new THREE.Box3().setFromObject(mainModel);
         const center = box.getCenter(new THREE.Vector3());
-        modelGroup.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+        mainModel.position.sub(center); 
+        mainModel.position.x += 0; 
+        mainModel.position.y += -50;
+        mainModel.scale.setScalar(0.6);
+        scene.add(mainModel);
+    }, undefined, (error) => console.error("Error cargando cuerpo:", error));
 
-        scene.add(modelGroup);
-      },
-      undefined,
-      (err) => {
-        console.warn('GLB not loaded, using fallback:', err.message);
-        buildFallback();
-      }
-    );
-  } else {
-    buildFallback();
-  }
-
-  // Scan line effect (horizontal plane that moves up/down)
-  const scanGeo = new THREE.PlaneGeometry(4, 0.006);
-  const scanMat = new THREE.MeshBasicMaterial({
-    color: 0x38bdf8, transparent: true, opacity: 0.35, side: THREE.DoubleSide,
-  });
-  const scanLine = new THREE.Mesh(scanGeo, scanMat);
-  scene.add(scanLine);
-
-  // Grid floor
-  const grid = new THREE.GridHelper(6, 20, 0x38bdf8, 0x0a2540);
-  grid.material.transparent = true;
-  grid.material.opacity = 0.12;
-  grid.position.y = -1.4;
-  scene.add(grid);
-
-  // Resize handler
-  function onResize() {
-    camera.aspect = W() / H();
-    camera.updateProjectionMatrix();
-    renderer.setSize(W(), H());
-  }
-  window.addEventListener('resize', onResize);
-
-  // Animation loop
-  const clock = new THREE.Clock();
-
-  function animate() {
-    requestAnimationFrame(animate);
-    const t = clock.getElapsedTime();
-
-    // Rotate model
-    if (modelGroup) {
-      modelGroup.rotation.y = t * 0.35;
-      modelGroup.position.y = Math.sin(t * 0.7) * 0.06;
+    function animate() {
+        requestAnimationFrame(animate);
+        if (mainModel) {
+            mainModel.rotation.y += 0.005;
+            mainModel.position.y = Math.sin(Date.now() * 0.001) * 0.1;
+        }
+        renderer.render(scene, camera);
     }
-
-    // Scan line sweep
-    scanLine.position.y = Math.sin(t * 0.8) * 1.2;
-    scanMat.opacity = 0.2 + Math.abs(Math.sin(t * 0.8)) * 0.25;
-
-    // Subtle camera drift
-    camera.position.x = Math.sin(t * 0.12) * 0.08;
-    camera.position.y = 0.5 + Math.sin(t * 0.08) * 0.05;
-    camera.lookAt(0, 0, 0);
-
-    // Key light orbit
-    keyLight.position.x = Math.cos(t * 0.4) * 3;
-    keyLight.position.z = Math.sin(t * 0.4) * 3;
-
-    renderer.render(scene, camera);
-  }
-
-  animate();
+    animate();
 })();
 
+// ════════════════════════════════════════════════════════════════════════════
+// 3. THREE.JS — PATCH COMPOSITION MODEL (parche.glb)
+// ════════════════════════════════════════════════════════════════════════════
+
+(function initPatchModel() {
+    const container = document.getElementById('patch-container');
+    const canvas = document.getElementById('patch-canvas');
+    if (!container || !canvas) return;
+
+    const scene = new THREE.Scene();
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    
+    const camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(0, 0, 3);
+
+    const light1 = new THREE.DirectionalLight(0xffffff, 1);
+    light1.position.set(1, 1, 1);
+    scene.add(light1);
+    scene.add(new THREE.AmbientLight(0x38bdf8, 0.4));
+
+    let patchModel;
+    const loader = new GLTFLoader();
+
+    loader.load('parche.glb', (gltf) => {
+        patchModel = gltf.scene;
+        // Centrar y escalar
+        const box = new THREE.Box3().setFromObject(patchModel);
+        const size = box.getSize(new THREE.Vector3());
+        const scale = 1.5 / Math.max(size.x, size.y);
+        patchModel.scale.setScalar(scale);
+        scene.add(patchModel);
+    }, undefined, (error) => console.error("Error cargando parche:", error));
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if (patchModel) {
+            patchModel.rotation.y += 0.01;
+            patchModel.rotation.x = Math.sin(Date.now() * 0.001) * 0.2;
+        }
+        renderer.render(scene, camera);
+    }
+    animate();
+})();
 
 // ════════════════════════════════════════════════════════════════════════════
-// 3. UI INTERACTIONS
+// 4. UI INTERACTION & SCROLL ANIMATIONS
 // ════════════════════════════════════════════════════════════════════════════
 
-// Navbar scroll effect
-const navbar = document.getElementById('navbar');
+// Navbar glass effect
 window.addEventListener('scroll', () => {
-  navbar.classList.toggle('scrolled', window.scrollY > 40);
-}, { passive: true });
-
-// Scroll-triggered fade-up animations
-const fadeEls = document.querySelectorAll(
-  '.tech-card, .step, .discipline-card, .purpose-card, .about-quote, .hero-stats .stat, .section-title, .section-body'
-);
-
-fadeEls.forEach(el => el.classList.add('fade-up'));
-
-const observer = new IntersectionObserver(
-  entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        observer.unobserve(e.target);
-      }
-    });
-  },
-  { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
-);
-
-fadeEls.forEach(el => observer.observe(el));
-
-// Stagger children
-document.querySelectorAll('.tech-cards, .steps-container, .purpose-grid').forEach(parent => {
-  [...parent.children].forEach((child, i) => {
-    child.style.transitionDelay = `${i * 80}ms`;
-  });
+    const nav = document.getElementById('navbar');
+    if (window.scrollY > 50) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
 });
 
-// Smooth scroll for nav links
-document.querySelectorAll('a[href^="#"]').forEach(link => {
-  link.addEventListener('click', e => {
-    const target = document.querySelector(link.getAttribute('href'));
-    if (target) {
-      e.preventDefault();
-      const offset = target.getBoundingClientRect().top + window.scrollY - 80;
-      window.scrollTo({ top: offset, behavior: 'smooth' });
-    }
-  });
+// Fade-up Observer
+const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+        }
+    });
+}, observerOptions);
+
+// Registramos todos los elementos para animación
+document.querySelectorAll(`
+    .section-title, .section-body, .tech-card, .step, 
+    .comp-item, .chroma-box, .discipline-card, .purpose-card
+`).forEach(el => {
+    el.classList.add('fade-up');
+    observer.observe(el);
+});
+
+// Staggered Delays para listas
+document.querySelectorAll('.tech-cards, .chroma-scale, .purpose-grid').forEach(parent => {
+    Array.from(parent.children).forEach((child, i) => {
+        child.style.transitionDelay = `${i * 100}ms`;
+    });
+});
+
+// Smooth Scroll
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            window.scrollTo({
+                top: target.offsetTop - 70,
+                behavior: 'smooth'
+            });
+        }
+    });
 });
