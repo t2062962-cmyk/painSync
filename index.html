@@ -11,10 +11,8 @@
 </head>
 <body>
 
-  <!-- Generative Background Canvas -->
   <canvas id="bg-canvas"></canvas>
 
-  <!-- Fixed Navigation -->
   <header id="navbar">
     <nav class="nav-inner">
       <a href="#hero" class="nav-logo">
@@ -24,14 +22,13 @@
       <ul class="nav-links">
         <li><a href="#what">Technology</a></li>
         <li><a href="#how">How It Works</a></li>
-        <li><a href="#about">About</a></li>
+        <li><a href="#composition">Structure</a></li> <li><a href="#about">About</a></li>
         <li><a href="#purpose">Purpose</a></li>
         <li><a href="#contact" class="nav-cta">Contact</a></li>
       </ul>
     </nav>
   </header>
 
-  <!-- Hero Section -->
   <section id="hero">
     <div class="hero-left">
       <div class="hero-badge">
@@ -83,7 +80,6 @@
     </div>
   </section>
 
-  <!-- What is it Section -->
   <section id="what">
     <div class="section-inner">
       <div class="section-tag mono">01 — TECHNOLOGY</div>
@@ -126,7 +122,6 @@
     </div>
   </section>
 
-  <!-- How It Works Section -->
   <section id="how">
     <div class="section-inner">
       <div class="section-tag mono">02 — MECHANISM</div>
@@ -164,10 +159,84 @@
     </div>
   </section>
 
-  <!-- About Section -->
+  <section id="composition">
+    <div class="section-inner">
+      <div class="section-tag mono">03 — STRUCTURE</div>
+      <div class="composition-grid">
+        <div class="composition-left">
+          <h2 class="section-title">Composition of the<br /><span class="accent">Smart Patch</span></h2>
+          <p class="section-body">
+            Engineering at the molecular level. Each patch is a multi-layered bio-interface designed for maximum thermal sensitivity and biocompatibility.
+          </p>
+          <div class="composition-details">
+            <div class="comp-item">
+              <span class="comp-index">01</span>
+              <div>
+                <h4>Protective Membrane</h4>
+                <p>Medical-grade polymer that prevents external thermal interference.</p>
+              </div>
+            </div>
+            <div class="comp-item">
+              <span class="comp-index">02</span>
+              <div>
+                <h4>Cholesteric Matrix</h4>
+                <p>Liquid crystal layer where the chromatic synchronization occurs.</p>
+              </div>
+            </div>
+            <div class="comp-item">
+              <span class="comp-index">03</span>
+              <div>
+                <h4>Hypoallergenic Adhesive</h4>
+                <p>Breathable interface ensuring perfect contact with the epidermis.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="composition-right">
+          <div id="patch-container">
+            <canvas id="patch-canvas"></canvas>
+            <div class="canvas-overlay-label">
+              <span class="mono">PATCH ARCHITECTURE 3D</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="chroma-guide">
+    <div class="section-inner centered">
+      <div class="section-tag mono">CHROMA GUIDE</div>
+      <h2 class="section-title">Visualizing <span class="accent">Inflammation</span></h2>
+      <div class="chroma-scale">
+        <div class="chroma-box" style="background: #38bdf8;">
+          <div class="chroma-info">
+            <span class="mono">VIOLET / BLUE</span>
+            <h4>Basal State</h4>
+            <p>Normal tissue temperature. No inflammatory markers detected.</p>
+          </div>
+        </div>
+        <div class="chroma-box" style="background: #7dd3fc;">
+          <div class="chroma-info">
+            <span class="mono">CYAN / GREEN</span>
+            <h4>Moderate Activity</h4>
+            <p>Localized thermal increase. Early inflammatory response.</p>
+          </div>
+        </div>
+        <div class="chroma-box" style="background: #e0f2fe;">
+          <div class="chroma-info">
+            <span class="mono">WHITE / BRIGHT</span>
+            <h4>Peak Response</h4>
+            <p>High thermal energy. Severe pain or acute inflammation detected.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="about">
     <div class="section-inner">
-      <div class="section-tag mono">03 — TEAM</div>
+      <div class="section-tag mono">04 — TEAM</div>
       <div class="about-grid">
         <div class="about-left">
           <h2 class="section-title">Built by a<br /><span class="accent">multidisciplinary<br />team.</span></h2>
@@ -198,10 +267,9 @@
     </div>
   </section>
 
-  <!-- Purpose Section -->
   <section id="purpose">
     <div class="section-inner">
-      <div class="section-tag mono">04 — PURPOSE</div>
+      <div class="section-tag mono">05 — PURPOSE</div>
       <h2 class="section-title centered">Why We <span class="accent">Exist</span></h2>
       <div class="purpose-grid">
         <div class="purpose-card mission">
@@ -226,7 +294,6 @@
     </div>
   </section>
 
-  <!-- Contact / CTA -->
   <section id="contact">
     <div class="section-inner contact-inner">
       <div class="contact-badge mono">PARTNER WITH US</div>
@@ -239,7 +306,6 @@
     </div>
   </section>
 
-  <!-- Footer -->
   <footer>
     <div class="footer-inner">
       <div class="footer-brand">
@@ -249,6 +315,7 @@
       <div class="footer-links">
         <a href="#what">Technology</a>
         <a href="#how">How It Works</a>
+        <a href="#composition">Structure</a>
         <a href="#about">About</a>
         <a href="#purpose">Purpose</a>
       </div>
